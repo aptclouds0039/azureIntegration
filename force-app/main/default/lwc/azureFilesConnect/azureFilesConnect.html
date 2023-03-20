@@ -1,0 +1,136 @@
+<template>
+    
+    <template if:true={containerDoesNotExist}>
+        <lightning-formatted-text value="No Container Found for this record" class="slds-align_absolute-center slds-m-top_small"></lightning-formatted-text>
+        <br>
+        <lightning-button onclick={handleCreateNewContainerClick} label="Create New Container" class="slds-align_absolute-center slds-m-bottom_small"></lightning-button>
+    </template>
+
+
+    <template if:true={containerExisting}>
+        <div class="slds-page-header">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__body">
+                            <lightning-icon icon-name="standard:home" size="medium" onclick={handleHomeClick}></lightning-icon>
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate slds-m-left_x-small" title="Recently Viewed">
+                                            Azure File Manager
+                                        </span>
+                                    </h1>
+                                    <!-- <lightning-breadcrumbs class="slds-m-left_x-small">
+                                        <template for:each={myBreadcrumbs} for:item="crumbs">
+                                            <lightning-breadcrumb
+                                                key={crumbs.id}
+                                                label={crumbs.label}
+                                                name={crumbs.name}
+                                                onclick={handleNavigateTo}>
+                                            </lightning-breadcrumb>
+                                        </template>
+                                    </lightning-breadcrumbs> -->
+                                </div>
+                                <div class="slds-page-header__name-switcher">
+                                    <div class="slds-dropdown-trigger slds-dropdown-trigger_click">
+                                        <button class="slds-button slds-button_icon slds-button_icon-small" aria-haspopup="true" title="Switch list view">
+                                            <svg class="slds-button__icon slds-icon_x-small" aria-hidden="true">
+                                                <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                            </svg>
+                                            <span class="slds-assistive-text">Switch list view</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-page-header__col-actions">
+                    <div class="slds-page-header__controls">
+                        <div class="slds-page-header__control">
+                                <ul class="slds-button-group-list">
+                                    <li>
+                                        <div class="slds-form_horizontal slds-form">
+                                        <lightning-input type="text"
+                                        value={searchKey} 
+                                        onchange={handelSearchKey}
+                                        class="slds-m-top_none slds-p-top_none"
+                                        > 
+                                        </lightning-input>
+                                        </div>
+                                    </li>
+                                    <li>
+                                       
+                                            <lightning-button-icon icon-name="utility:search" size="medium" class="slds-p-right_xx-small slds-p-top_xx-small slds-has-blur-focus" onclick={handleSearch}></lightning-button-icon>
+                                    </li>
+                                    <li><lightning-button-icon icon-name="utility:refresh" size="medium" onclick={handleClearSearch} class="slds-p-right_xx-small"></lightning-button-icon></li>
+                                    <li><lightning-button-icon icon-name="utility:upload" size="medium" onclick={handleFileUploadClick} class="slds-p-right_xx-small"></lightning-button-icon></li>
+                                    <li><lightning-button-icon icon-name="utility:settings" aria-haspopup="true" class="slds-p-right_xx-small"></lightning-button-icon></li>
+                                    
+
+                                </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <c-custom-blob-datatable
+            key-field="id"
+            hide-checkbox-column="true"
+            onazuredeleteblob={handleDeleteBlob}
+            onazurerecopylinkblob={handleCopyLinkBlob}
+            onazuredownloadblob={handleDownLoadBlob}
+            data={containerData}
+            columns={blobCols}
+            default-sort-direction={defaultSortDirection}
+            sorted-direction={sortDirection}
+            sorted-by={sortedBy}
+            onsort={onHandleSort}
+        >
+        </c-custom-blob-datatable>
+
+        <template if:true={showLoadingSpinner}>
+            <lightning-spinner variant="brand" size="large"> </lightning-spinner>
+        </template>
+
+        <template if:true={showFileUploadModal}>
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                   <header class="slds-modal__header">
+                      <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleFileUploadClose}>
+                         <lightning-icon icon-name="utility:close"
+                            alternative-text="close"
+                            variant="inverse"
+                            size="small" ></lightning-icon>
+                         <span class="slds-assistive-text">Close</span>
+                      </button>
+                      <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Upload Files In Container</h2>
+                   </header>
+               
+                   <!-- modal body start -->
+                   <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                    <lightning-input
+                        type="file"
+                        label="Attachment"
+                        accept="image/png, .zip, .pdf"
+                        onchange={handleFilesChange}
+                        multiple
+                        >
+                    </lightning-input>
+                   </div>
+         
+                   <!-- modal footer start-->
+                   <footer class="slds-modal__footer">
+                        <button onclick={handleFileUploadSubmit}>Upload</button>
+                        <button class="slds-button slds-button_neutral" onclick={handleFileUploadClose}>Cancel</button>
+                   </footer>
+                
+                </div>
+             </section>
+             <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </template>
+
+</template>

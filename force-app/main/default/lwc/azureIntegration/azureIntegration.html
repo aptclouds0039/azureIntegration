@@ -1,0 +1,160 @@
+<template>
+    <div class="slds-page-header">
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title">
+                <div class="slds-media">
+                    <div class="slds-media__body">
+                        <lightning-icon icon-name="standard:home" size="large" onclick={handleHomeClick}></lightning-icon>
+                        <div class="slds-page-header__name">
+                            <div class="slds-page-header__name-title">
+                                <h1>
+                                    <span class="slds-page-header__title slds-truncate slds-m-left_x-small" title="Recently Viewed">
+                                        Azure File Manager
+                                    </span>
+                                </h1>
+                                <lightning-breadcrumbs class="slds-m-left_x-small">
+                                    <template for:each={myBreadcrumbs} for:item="crumbs">
+                                        <lightning-breadcrumb
+                                            key={crumbs.id}
+                                            label={crumbs.label}
+                                            name={crumbs.name}
+                                            onclick={handleNavigateTo}>
+                                        </lightning-breadcrumb>
+                                    </template>
+                                </lightning-breadcrumbs>
+                            </div>
+                            <div class="slds-page-header__name-switcher">
+                                <div class="slds-dropdown-trigger slds-dropdown-trigger_click">
+                                    <button class="slds-button slds-button_icon slds-button_icon-small" aria-haspopup="true" title="Switch list view">
+                                        <svg class="slds-button__icon slds-icon_x-small" aria-hidden="true">
+                                            <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                        </svg>
+                                        <span class="slds-assistive-text">Switch list view</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-page-header__col-actions">
+                <div class="slds-page-header__controls">
+                    <div class="slds-page-header__control">
+                        <template if:true={containerListScreen}>
+                            <ul class="slds-button-group-list">
+                                <li><button class="slds-button slds-button_neutral" onclick={handleNewContainerClick}>New Container</button></li>
+                                <li><button class="slds-button slds-button_neutral" aria-haspopup="true" title="More Actions">Settings</button></li>
+                            </ul>
+                        </template>
+
+                        <template if:true={blobListScreen}>
+                            <ul class="slds-button-group-list">
+                                <li><button class="slds-button slds-button_neutral" onclick={handleFileUploadClick}>Upload</button></li>
+                                <li><button class="slds-button slds-button_neutral" aria-haspopup="true" title="More Actions">Settings</button></li>
+                            </ul>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <template if:true={containerListScreen}>
+        <div>
+            <c-custom-datatable
+            key-field="id"
+            hide-checkbox-column="true"
+            data={containerList}
+            columns={containerCols}
+            onazurecustomdatatype={handleFolderClick}
+            onazuredeletecontainer={handleDeleteButtonClick}
+            onazurerecopylinkcontainer={handleCopyLinkClick} >    
+            </c-custom-datatable>
+        </div>
+    </template>
+
+    <template if:true={blobListScreen}>
+        <c-custom-blob-datatable
+            key-field="id"
+            hide-checkbox-column="true"
+            onazuredeleteblob={handleDeleteBlob}
+            onazurerecopylinkblob={handleCopyLinkBlob}
+            onazuredownloadblob={handleDownLoadBlob}
+            data={containerData}
+            columns={blobCols}
+        >
+        </c-custom-blob-datatable>
+    </template>
+    
+    <template if:true={showLoadingSpinner}>
+        <lightning-spinner variant="brand" size="large"> </lightning-spinner>
+    </template>
+
+    <template if:true={showCreateNewContainerModal}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+               <header class="slds-modal__header">
+                  <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCreateNewContainerClose}>
+                     <lightning-icon icon-name="utility:close"
+                        alternative-text="close"
+                        variant="inverse"
+                        size="small" ></lightning-icon>
+                     <span class="slds-assistive-text">Close</span>
+                  </button>
+                  <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Create New Container</h2>
+               </header>
+           
+               <!-- modal body start -->
+               <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <lightning-input type="text" label="Enter Container Name" onchange={handleContainerNameChange}></lightning-input>
+               </div>
+     
+               <!-- modal footer start-->
+               <footer class="slds-modal__footer">
+                    <button onclick={handleCreateNewContainerSubmit}>Create Container</button>
+                    <button class="slds-button slds-button_neutral" onclick={handleCreateNewContainerClose}>Cancel</button>
+               </footer>
+            
+            </div>
+         </section>
+         <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+
+    <template if:true={showFileUploadModal}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+               <header class="slds-modal__header">
+                  <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleFileUploadClose}>
+                     <lightning-icon icon-name="utility:close"
+                        alternative-text="close"
+                        variant="inverse"
+                        size="small" ></lightning-icon>
+                     <span class="slds-assistive-text">Close</span>
+                  </button>
+                  <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Upload Files In Container</h2>
+               </header>
+           
+               <!-- modal body start -->
+               <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                <lightning-input
+                    type="file"
+                    label="Attachment"
+                    accept="image/png, .zip, .pdf"
+                    onchange={handleFilesChange}
+                    multiple
+                    >
+                </lightning-input>
+               </div>
+     
+               <!-- modal footer start-->
+               <footer class="slds-modal__footer">
+                    <button onclick={handleFileUploadSubmit}>Upload</button>
+                    <button class="slds-button slds-button_neutral" onclick={handleFileUploadClose}>Cancel</button>
+               </footer>
+            
+            </div>
+         </section>
+         <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
